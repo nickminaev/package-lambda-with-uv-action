@@ -22,8 +22,37 @@ runs:
             cp *.py lambda_package/
           working-directory: ${{ inputs.working-directory }}
           shell: bash
+          name: Install the code's dependencies and package them along with the source code itself
+        - run: |
+            package_size=$(du -sh lambda_package | awk '{print $1}' | grep -Eo [0-9]*)
+            size_units=$(du -sh lambda_package | awk '{print $1}' | grep -Eo [A-Za-z]+)
+            case $size_units in 
+                K)
+                    echo "The package size is below 250MB, which satisfies the AWS requirements for publishing the Lambda code as a zip."
+                    echo "valid=$(echo "s3")" >> $GITHUB_OUTPUT
+                    ;;
+                M)
+                    if [[ $package_size -ge 250 ]]; then
+                        echo "Lambda package cannot exceed 250MB in the unzipped state. Setting the publish destination as an S3 bucket."
+                        echo "destination=$(echo "s3")" >> $GITHUB_OUTPUT
+                        exit 0
+                    fi
+                    echo "The package size is below 250MB, which satisfies the AWS requirements."
+                    echo "valid=$(echo "zip")" >> $GITHUB_OUTPUT
+                    ;;
+                *)
+                    echo "Lambda package cannot exceed 250MB in the unzipped state. Setting the publishing destination to S3 bucket."
+                    echo "valid=$(echo "s3")" >> $GITHUB_OUTPUT
+                    ;;
+            esac
+          shell: bash
+          working-directory: ${{ inputs.working-directory }}
+          id: publish_destination
+          name: Get the publish destination for the package
         - run: |
             zip -r lambda_package.zip lambda_package
             chmod 644 lambda_package.zip
+          if: ${{ steps.publish_destination.ouputs.destination == 'zip' }}
           working-directory: ${{ inputs.working-directory }}
           shell: bash
+          name: Package the dependencies and the source code
