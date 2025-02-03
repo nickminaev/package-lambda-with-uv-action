@@ -1,0 +1,27 @@
+name: 'steps to package a Python lambda function'
+description: 'Package a Lambda with uv and Python'
+inputs:
+    working-directory:
+        required: true
+        description: 'The working directory which will be packaged for deployment'
+    python-version:
+         required: true
+         default: '3.13'
+         description: 'The Python version that your Lambda function runs in'
+runs:
+    using: "composite"
+    steps:
+        - uses: actions/setup-python@v5
+          with:
+            python-version: ${{ inputs.python-version }}
+        - uses: astral-sh/setup-uv@v5
+        - run: |
+            uv export --frozen --no-emit-workspace --no-emit-project --no-dev --no-editable --no-hashes -o requirements.txt
+            mkdir lambda_package
+            uv pip install -r requirements.txt --target lambda_package
+            cp *.py lambda_package/
+          working_directory: ${{ inputs.working-directory }}
+        - run: |
+            zip -r lambda_package.zip lambda_package
+            chmod 644 lambda_package.zip
+          working_directory: ${{ inputs.working-directory }}
