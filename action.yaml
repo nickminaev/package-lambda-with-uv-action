@@ -20,8 +20,10 @@ runs:
             mkdir lambda_package
             uv pip install -r requirements.txt --target lambda_package
             cp *.py lambda_package/
-          working_directory: ${{ inputs.working-directory }}
+          working-directory: ${{ inputs.working-directory }}
+          shell: bash
         - run: |
             zip -r lambda_package.zip lambda_package
             chmod 644 lambda_package.zip
-          working_directory: ${{ inputs.working-directory }}
+          working-directory: ${{ inputs.working-directory }}
+          shell: bash
