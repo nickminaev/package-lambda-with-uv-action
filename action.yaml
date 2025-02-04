@@ -29,7 +29,7 @@ runs:
             case $size_units in 
                 K)
                     echo "The package size is below 250MB, which satisfies the AWS requirements for publishing the Lambda code as a zip."
-                    echo "valid=$(echo "s3")" >> $GITHUB_OUTPUT
+                    echo "destination=$(echo "s3")" >> $GITHUB_OUTPUT
                     ;;
                 M)
                     if [[ $package_size -ge 250 ]]; then
@@ -38,11 +38,11 @@ runs:
                         exit 0
                     fi
                     echo "The package size is below 250MB, which satisfies the AWS requirements."
-                    echo "valid=$(echo "zip")" >> $GITHUB_OUTPUT
+                    echo "destination=$(echo "zip")" >> $GITHUB_OUTPUT
                     ;;
                 *)
                     echo "Lambda package cannot exceed 250MB in the unzipped state. Setting the publishing destination to S3 bucket."
-                    echo "valid=$(echo "s3")" >> $GITHUB_OUTPUT
+                    echo "destination=$(echo "s3")" >> $GITHUB_OUTPUT
                     ;;
             esac
           shell: bash
