@@ -24,7 +24,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
       - run: |
-          print("hello!")
+          import os
+          import json
+          tests_directory = Path('tests')
+          immediate_directories = [x for x in tests_directory.iterdir() if x.is_dir()]
+          print(immediate_directories)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            fh.write(f'directories={json.dumps(immediate_directories)}')
         shell: python {0}
   build:
     runs-on: ubuntu-latest
