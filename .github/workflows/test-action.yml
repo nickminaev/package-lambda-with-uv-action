@@ -34,7 +34,7 @@ jobs:
           print(immediate_directories)
           with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
             fh.write(f'directories={json.dumps(immediate_directories)}')
-        shell: python {0}
+        shell: python
         id: determine_matrix
   build:
     runs-on: ubuntu-latest

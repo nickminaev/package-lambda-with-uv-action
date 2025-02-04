@@ -16,9 +16,17 @@ runs:
             python-version: ${{ inputs.python-version }}
         - uses: astral-sh/setup-uv@v5
         - run: |
-            uv export --frozen --no-emit-workspace --no-emit-project --no-dev --no-editable --no-hashes -o requirements.txt
+            uv_lock_exists=false
+            if [[ -f 'uv.lock' ]]; then
+               uv_lock_exists=true
+            fi
+            if [ $uv_lock_exists=true ];then
+               uv export --frozen --no-emit-workspace --no-emit-project --no-dev --no-editable --no-hashes -o requirements.txt
+            fi
             mkdir lambda_package
-            uv pip install -r requirements.txt --target lambda_package
+            if [ $uv_lock_exists=true ]; then
+                uv pip install -r requirements.txt --target lambda_package
+            fi
             cp *.py lambda_package/
           working-directory: ${{ inputs.working-directory }}
           shell: bash
