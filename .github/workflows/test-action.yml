@@ -30,7 +30,7 @@ jobs:
           import json
           from pathlib import Path
           tests_directory = Path('tests')
-          immediate_directories = [repr(x) for x in tests_directory.iterdir() if x.is_dir()]
+          immediate_directories = [str(x) for x in tests_directory.iterdir() if x.is_dir()]
           print(immediate_directories)
           with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
             fh.write(f'directories={json.dumps(immediate_directories)}')
