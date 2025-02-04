@@ -49,6 +49,11 @@ runs:
           working-directory: ${{ inputs.working-directory }}
           id: publish_destination
           name: Get the publish destination for the package
+        - run : |
+            echo $DESTINATION
+          env: 
+            DESTINATION: ${{  steps.publish_destination.ouputs.destination }}
+          shell: bash
         - run: |
             zip -r lambda_package.zip lambda_package
             chmod 644 lambda_package.zip
