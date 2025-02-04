@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           pushd tests
-          find -maxdepth 1 -type d
+          ls -l | grep ^d | awk '{print $9}'
   build:
     runs-on: ubuntu-latest
     steps:
