@@ -18,6 +18,13 @@ permissions:
   contents: read
 
 jobs:
+  determine_matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          pushd tests
+          find -maxdepth 1 -type d
   build:
     runs-on: ubuntu-latest
     steps:
