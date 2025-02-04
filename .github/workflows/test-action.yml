@@ -23,8 +23,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          pushd tests
+          pushd tests > /dev/null
           ls -l | grep ^d | awk '{print $9}'
+        name: List the tests
   build:
     runs-on: ubuntu-latest
     steps:
