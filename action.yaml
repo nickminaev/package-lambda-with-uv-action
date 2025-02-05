@@ -37,11 +37,11 @@ runs:
           name: Install the code's dependencies and package them along with the source code itself
         - run: |
             package_size_bytes=$(du -s lambda_package | awk '{print $1}')
-            if [[ $package_size_bytes -gt MAXIMUM_PACKAGE_SIZE_IN_BYTES ]]; then
+            if [[ $package_size_bytes -gt $MAXIMUM_PACKAGE_SIZE_IN_BYTES ]]; then
                echo "::error::The package size exceeds 250MB. It cannot be deployed locally or to an S3 bucket. Use a container instead. In such case, it can be up to 10GB in size."
                exit 1
             fi
-            zip -r lambda_package.zip lambda_package > /dev/null
+            zip -r lambda_package.zip lambda_package
             chmod 644 lambda_package.zip
             $package_size_bytes=$(du -s lambda_package.zip | awk '{print $1}')
             if [[ $package_size_bytes -gt $MAXIMUM_DIRECT_DEPLOY_SIZE_IN_BYTES ]]; then
