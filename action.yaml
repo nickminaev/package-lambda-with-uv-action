@@ -20,16 +20,10 @@ runs:
             python-version: ${{ inputs.python-version }}
         - uses: astral-sh/setup-uv@v5
         - run: |
-            uv_lock_exists=false
-            if [[ -f "uv.lock" ]]; then
-               uv_lock_exists=true
-            fi
-            if [ $uv_lock_exists=true ]; then
-               uv export --frozen --no-emit-workspace --no-emit-project --no-dev --no-editable --no-hashes -o requirements.txt
-            fi
             mkdir lambda_package
-            if [ $uv_lock_exists=true ]; then
-                uv pip install -r requirements.txt --target lambda_package
+            if [[ -f uv.lock ]]; then
+               uv export --frozen --no-emit-workspace --no-emit-project --no-dev --no-editable --no-hashes -o requirements.txt
+               uv pip install -r requirements.txt --target lambda_package
             fi
             cp *.py lambda_package/
           working-directory: ${{ inputs.working-directory }}
@@ -37,23 +31,22 @@ runs:
           name: Install the code's dependencies and package them along with the source code itself
         - run: |
             package_size_bytes=$(du -s lambda_package | awk '{print $1}')
-            echo $package_size_bytes
-            echo $MAXIMUM_PACKAGE_SIZE_IN_BYTES
+            if [[ $package_size_bytes -le MAXIMUM_PACKAGE_SIZE_IN_BYTES ]]; then
+               echo "destination=local" >> GITHUB_OUTPUT
+               echo "::notice::The package size is below 250MB unzipped. It means it can be deployed from the runner."
+            else
+               echo "destination=s3" >> GITHUB_OUTPUT
+               echo "::warning::The package size exceeds 250MB, which means the lambda package file should be published to S3"
+            fi
           shell: bash
           working-directory: ${{ inputs.working-directory }}
           id: publish_destination
           name: Get the publish destination for the package
           env:
             MAXIMUM_PACKAGE_SIZE_IN_BYTES: ${{ inputs.max-local-package-size-bytes }}
-        - run : |
-            echo $DESTINATION
-          env: 
-            DESTINATION: ${{ steps.publish_destination.ouputs.destination }}
-          shell: bash
         - run: |
             zip -r lambda_package.zip lambda_package
             chmod 644 lambda_package.zip
-          if: ${{ steps.publish_destination.ouputs.destination == 'zip' }}
           working-directory: ${{ inputs.working-directory }}
           shell: bash
           name: Package the dependencies and the source code
