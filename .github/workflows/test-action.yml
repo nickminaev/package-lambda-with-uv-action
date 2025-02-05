@@ -45,7 +45,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Package a lambda function
-      uses: nickminaev/package-lambda-with-uv-action@${{ github.sha }}
+      uses: nickminaev/package-lambda-with-uv-action
       with:
         working-directory: ${{ matrix.package }}
       
