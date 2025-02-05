@@ -49,7 +49,7 @@ runs:
                echo "distination=s3" >> $GITHUB_OUTPUT
             else
                 echo "distination=local" >> $GITHUB_OUTPUT
-                echo "::notice::The zip archive's file is below 50MB. You can directly deploy to the Lambda function."
+                echo "::notice::The zip archive's file is below 50MB. You can directly deploy it to the Lambda function."
             fi
           shell: bash
           working-directory: ${{ inputs.working-directory }}
