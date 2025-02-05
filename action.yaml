@@ -8,13 +8,18 @@ inputs:
          required: true
          default: '3.13'
          description: 'The Python version that your Lambda function runs in'
-    max-local-package-size-bytes:
+    max-allowed-package-size-bytes:
           required: true
           default: '262144000'
-          description: 'The maximum allowed local package size for lambda'
+          description: 'The maximum allowed package size for lambda'
+    max-direct-deploy-size-bytes:
+          required: true
+          default: '52428800'
+          description: 'The maximum size for the direct deployment package'
 runs:
     using: "composite"
     steps:
+    # TBD: dynamic Python version according to the local .python-version file
         - uses: actions/setup-python@v5
           with:
             python-version: ${{ inputs.python-version }}
@@ -22,6 +27,7 @@ runs:
         - run: |
             mkdir lambda_package
             if [[ -f uv.lock ]]; then
+               # TBD: the uv.locl might be missing (not checked into the source code)
                uv export --frozen --no-emit-workspace --no-emit-project --no-dev --no-editable --no-hashes -o requirements.txt
                uv pip install -r requirements.txt --target lambda_package
             fi
@@ -31,22 +37,23 @@ runs:
           name: Install the code's dependencies and package them along with the source code itself
         - run: |
             package_size_bytes=$(du -s lambda_package | awk '{print $1}')
-            if [[ $package_size_bytes -le MAXIMUM_PACKAGE_SIZE_IN_BYTES ]]; then
-               echo "destination=local" >> GITHUB_OUTPUT
-               echo "::notice::The package size is below 250MB unzipped. It means it can be deployed from the runner."
+            if [[ $package_size_bytes -gt MAXIMUM_PACKAGE_SIZE_IN_BYTES ]]; then
+               echo "::error::The package size exceeds 250MB. It cannot be deployed locally or to an S3 bucket. Use a container instead. In such case, it can be up to 10GB in size."
+               exit 1
+            fi
+            zip -r lambda_package.zip lambda_package >> /dev/null
+            chmod 644 lambda_package.zip
+            $package_size_bytes=$(du -s lambda_package.zip | awk '{print $1}')
+            if [[ $package_size_bytes -gt $MAXIMUM_DIRECT_DEPLOY_SIZE_IN_BYTES ]]; then
+               echo "::warning::The zip archive's size for direct deploy exceeds 50MB. Deploy the file to an S3 bucke instead."
+               echo "distination=s3" >> $GITHUB_OUTPUT
             else
-               echo "destination=s3" >> GITHUB_OUTPUT
-               echo "::warning::The package size exceeds 250MB, which means the lambda package file should be published to S3"
+                echo "distination=local" >> $GITHUB_OUTPUT
             fi
           shell: bash
           working-directory: ${{ inputs.working-directory }}
           id: publish_destination
           name: Get the publish destination for the package
           env:
-            MAXIMUM_PACKAGE_SIZE_IN_BYTES: ${{ inputs.max-local-package-size-bytes }}
-        - run: |
-            zip -r lambda_package.zip lambda_package
-            chmod 644 lambda_package.zip
-          working-directory: ${{ inputs.working-directory }}
-          shell: bash
-          name: Package the dependencies and the source code
+            MAXIMUM_PACKAGE_SIZE_IN_BYTES: ${{ inputs.max-allowed-package-size-bytes }}
+            MAXIMUM_DIRECT_DEPLOY_SIZE_IN_BYTES: ${{ inputs.max-direct-deploy-size-bytes }}
