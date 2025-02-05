@@ -17,10 +17,10 @@ runs:
         - uses: astral-sh/setup-uv@v5
         - run: |
             uv_lock_exists=false
-            if [[ -f 'uv.lock' ]]; then
+            if [[ -f "uv.lock" ]]; then
                uv_lock_exists=true
             fi
-            if [ $uv_lock_exists=true ];then
+            if [ $uv_lock_exists=true ]; then
                uv export --frozen --no-emit-workspace --no-emit-project --no-dev --no-editable --no-hashes -o requirements.txt
             fi
             mkdir lambda_package
