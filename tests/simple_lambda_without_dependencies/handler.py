@@ -3,6 +3,5 @@ response = {
             'body': 'OK'
            }
 
-
 def handle(event, context):
     return response

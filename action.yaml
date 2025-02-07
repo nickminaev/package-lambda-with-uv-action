@@ -4,10 +4,6 @@ inputs:
     working-directory:
         required: true
         description: 'The working directory which will be packaged for deployment'
-    python-version:
-         required: true
-         default: '3.13'
-         description: 'The Python version that your Lambda function runs in'
     max-allowed-package-size-bytes:
           required: true
           default: '262144000'
@@ -20,14 +16,17 @@ runs:
     using: "composite"
     steps:
     # TBD: dynamic Python version according to the local .python-version file
-        - uses: actions/setup-python@v5
-          with:
-            python-version: ${{ inputs.python-version }}
         - uses: astral-sh/setup-uv@v5
         - run: |
+            depsList=$(cat pyproject.toml | grep "dependencies = ")
+            depsEmpty=false
+            if [[ "$depsList" != "*[]*" && ! -f uv.lock ]]; then
+               echo "::eror::You probably forgot to check in the uv.lock file. It contains the actual resolution of dependencies. Please chec it in."
+               exit 1
+            fi
             mkdir lambda_package
             if [[ -f uv.lock ]]; then
-               # TBD: the uv.locl might be missing (not checked into the source code)
+               depsList=$(cat pyproject.toml | grep "dependencies = ")
                uv export --frozen --no-emit-workspace --no-emit-project --no-dev --no-editable --no-hashes -o requirements.txt
                uv pip install -r requirements.txt --target lambda_package
             fi
@@ -45,7 +44,7 @@ runs:
             chmod 644 lambda_package.zip
             package_size_bytes=$(du -s lambda_package.zip | awk '{print $1}')
             if [[ $package_size_bytes -gt $MAXIMUM_DIRECT_DEPLOY_SIZE_IN_BYTES ]]; then
-               echo "::warning::The zip archive's size for direct deploy exceeds 50MB. Deploy the file to an S3 bucke instead."
+               echo "::warning::The zip archive's size for direct deploy exceeds 50MB. Deploy the file to an S3 bucket instead."
                echo "distination=s3" >> $GITHUB_OUTPUT
             else
                 echo "distination=local" >> $GITHUB_OUTPUT
@@ -54,7 +53,7 @@ runs:
           shell: bash
           working-directory: ${{ inputs.working-directory }}
           id: publish_destination
-          name: Get the publish destination for the package
+          name: Build the package and provide a destination
           env:
             MAXIMUM_PACKAGE_SIZE_IN_BYTES: ${{ inputs.max-allowed-package-size-bytes }}
             MAXIMUM_DIRECT_DEPLOY_SIZE_IN_BYTES: ${{ inputs.max-direct-deploy-size-bytes }}
