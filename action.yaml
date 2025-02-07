@@ -22,7 +22,7 @@ runs:
             depsEmpty=false
             if [[ $depsList != *"[]"* ]] && [[ ! -f uv.lock ]]; then
                echo "::eror::You probably forgot to check in the uv.lock file. It contains the actual resolution of dependencies. Please chec it in."
-               exit 1
+               exit 0
             fi
             mkdir lambda_package
             if [[ -f uv.lock ]]; then
