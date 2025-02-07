@@ -20,13 +20,12 @@ runs:
         - run: |
             depsList=$(cat pyproject.toml | grep "dependencies = ")
             depsEmpty=false
-            if [[ "$depsList" != "*[]*" && ! -f uv.lock ]]; then
+            if [[ $depsList != *"[]"* ]] && [[ ! -f uv.lock ]]; then
                echo "::eror::You probably forgot to check in the uv.lock file. It contains the actual resolution of dependencies. Please chec it in."
                exit 1
             fi
             mkdir lambda_package
             if [[ -f uv.lock ]]; then
-               depsList=$(cat pyproject.toml | grep "dependencies = ")
                uv export --frozen --no-emit-workspace --no-emit-project --no-dev --no-editable --no-hashes -o requirements.txt
                uv pip install -r requirements.txt --target lambda_package
             fi
