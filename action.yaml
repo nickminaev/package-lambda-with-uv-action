@@ -20,7 +20,7 @@ runs:
         - run: |
             depsList=$(cat pyproject.toml | grep "dependencies = ")
             depsEmpty=false
-            if [[ $depsList != *"[]"* ]] && [[ ! -f uv.lock ]]; then
+            if [[ $depsList == *"[]"* ]] && [[ -f uv.lock ]]; then
                echo "::eror::You probably forgot to check in the uv.lock file. It contains the actual resolution of dependencies. Please chec it in."
                exit 0
             fi
