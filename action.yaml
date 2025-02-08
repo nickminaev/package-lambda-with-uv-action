@@ -21,8 +21,9 @@ runs:
             depsList=$(cat pyproject.toml | grep "dependencies = ")
             depsEmpty=false
             if [[ ! -f uv.lock ]]; then
-                if [ $depsList != "[]" ]; then
+                if [[ $depsList != *"[]"* ]]; then
                     echo "::error::There are dependencies in the pyproject.toml file, but there's no uv.lock file. Please, check it in also."
+                    exit 0
                 fi
             fi
             mkdir lambda_package
