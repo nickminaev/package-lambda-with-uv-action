@@ -30,6 +30,8 @@ The action performs the following:
 
 - `destination`: `direct` - for publishing the contents directly to the Lambda function; `s3` - for being able to publish the package into an S3 bucket.
 
+Important: You can use the `lambda_package.zip` file in the rest of your workflow to publish your package.
+
 ## Usage
 
 ```yaml
