@@ -1,4 +1,8 @@
 name: 'steps to package a Python lambda function'
+author: 'Nick Minaev'
+branding:
+  color: green
+  icon: disc
 description: 'Package a Lambda with uv and Python'
 inputs:
     working-directory:
