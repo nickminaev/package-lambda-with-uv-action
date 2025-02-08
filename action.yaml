@@ -12,6 +12,10 @@ inputs:
           required: true
           default: '52428800'
           description: 'The maximum size for the direct deployment package'
+outputs: 
+    destination: 
+        value: ${{ steps.publish_destination.outputs.desination }}
+        description: "s3 for publishing the package to an S3 bucket; direct for a possibility to publish the package directly into a Lambda."
 runs:
     using: "composite"
     steps:
@@ -46,9 +50,9 @@ runs:
             package_size_bytes=$(du -s lambda_package.zip | awk '{print $1}')
             if [[ $package_size_bytes -gt $MAXIMUM_DIRECT_DEPLOY_SIZE_IN_BYTES ]]; then
                echo "::warning::The zip archive's size for direct deploy exceeds 50MB. Deploy the file to an S3 bucket instead."
-               echo "distination=s3" >> $GITHUB_OUTPUT
+               echo "destination=s3" >> $GITHUB_OUTPUT
             else
-                echo "distination=local" >> $GITHUB_OUTPUT
+                echo "destination=direct" >> $GITHUB_OUTPUT
                 echo "::notice::The zip archive's file is below 50MB. You can directly deploy it to the Lambda function."
             fi
           shell: bash
