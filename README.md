@@ -21,6 +21,7 @@ The action performs the following:
 ## Inputs:
 
 - `working-directory`: path to the working directory containing the `.python-versionn`, `pyproject.toml` and `uv.lock` (in case there are dependencies) files.
+- `output-package-name`: The name of the output package. Default value: `lambda_package`.
 - `max-allowed-package-size-bytes`: The maximum allowed package in bytes. Currently equals 250MB.
 - `max-direct-deploy-size-bytes`: The maximum allowed package size in bytes for direct publishing. Currently it's 50MB.
 
