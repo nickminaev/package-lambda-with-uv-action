@@ -8,6 +8,10 @@ inputs:
     working-directory:
         required: true
         description: 'The working directory which will be packaged for deployment'
+    output-package-name:
+        required: true
+        default: 'lambda_package'
+        description: 'The name of the zip archive to be produced by this action (without the extension)'
     max-allowed-package-size-bytes:
           required: true
           default: '262144000'
@@ -34,24 +38,24 @@ runs:
                     exit 0
                 fi
             fi
-            mkdir lambda_package
+            mkdir ${{ inputs.output-package-name }}
             if [[ -f uv.lock ]]; then
                uv export --frozen --no-emit-workspace --no-emit-project --no-dev --no-editable --no-hashes -o requirements.txt
-               uv pip install -r requirements.txt --target lambda_package
+               uv pip install -r requirements.txt --target ${{ inputs.output-package-name }}
             fi
-            cp *.py lambda_package/
+            cp *.py ${{ inputs.output-package-name }}/
           working-directory: ${{ inputs.working-directory }}
           shell: bash
           name: Install the code's dependencies and package them along with the source code itself
         - run: |
-            package_size_bytes=$(du -s lambda_package | awk '{print $1}')
+            package_size_bytes=$(du -s ${{ inputs.output-package-name }} | awk '{print $1}')
             if [[ $package_size_bytes -gt $MAXIMUM_PACKAGE_SIZE_IN_BYTES ]]; then
                echo "::error::The package size exceeds 250MB. It cannot be deployed locally or to an S3 bucket. Use a container instead. In such case, it can be up to 10GB in size."
                exit 1
             fi
-            zip -r lambda_package.zip lambda_package > /dev/null
-            chmod 644 lambda_package.zip
-            package_size_bytes=$(du -s lambda_package.zip | awk '{print $1}')
+            zip -r ${{ inputs.output-package-name }}.zip ${{ inputs.output-package-name }} > /dev/null
+            chmod 644 ${{ inputs.output-package-name }}.zip
+            package_size_bytes=$(du -s ${{ inputs.output-package-name }}.zip | awk '{print $1}')
             if [[ $package_size_bytes -gt $MAXIMUM_DIRECT_DEPLOY_SIZE_IN_BYTES ]]; then
                echo "::warning::The zip archive's size for direct deploy exceeds 50MB. Deploy the file to an S3 bucket instead."
                echo "destination=s3" >> $GITHUB_OUTPUT
