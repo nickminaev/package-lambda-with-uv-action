@@ -49,4 +49,5 @@ jobs:
       uses: nickminaev/package-lambda-with-uv-action@main
       with:
         working-directory: ${{ matrix.package }}
+        output-package-name: 'package1'
       
