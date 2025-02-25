@@ -46,8 +46,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Package a lambda function
+      id: package-lambda
       uses: nickminaev/package-lambda-with-uv-action@main
       with:
         working-directory: ${{ matrix.package }}
         output-package-name: 'package1'
-      
+    - name: 'Test the destination output from the previous step'
+      run: |
+        echo "$DESTINATION"
+      env:
+        DESTINATION: ${{ steps.package-lambda.outputs.destination }}     
