@@ -22,7 +22,7 @@ inputs:
           description: 'The maximum size for the direct deployment package'
 outputs: 
     destination: 
-        value: ${{ steps.publish_destination.outputs.desination }}
+        value: ${{ steps.publish_destination.outputs.destination }}
         description: "s3 for publishing the package to an S3 bucket; direct for a possibility to publish the package directly into a Lambda."
 runs:
     using: "composite"
