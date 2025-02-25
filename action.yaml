@@ -56,13 +56,12 @@ runs:
             zip -r ${{ inputs.output-package-name }}.zip ${{ inputs.output-package-name }} > /dev/null
             chmod 644 ${{ inputs.output-package-name }}.zip
             package_size_bytes=$(du -s ${{ inputs.output-package-name }}.zip | awk '{print $1}')
+            destination="direct"
             if [[ $package_size_bytes -gt $MAXIMUM_DIRECT_DEPLOY_SIZE_IN_BYTES ]]; then
+               destination="s3"
                echo "::warning::The zip archive's size for direct deploy exceeds 50MB. Deploy the file to an S3 bucket instead."
-               echo "destination=s3" >> $GITHUB_OUTPUT
-            else
-                echo "destination=direct" >> $GITHUB_OUTPUT
-                echo "::notice::The zip archive's file is below 50MB. You can directly deploy it to the Lambda function."
             fi
+            echo "destination=$destination" >> $GITHUB_OUTPUT
           shell: bash
           working-directory: ${{ inputs.working-directory }}
           id: publish_destination
